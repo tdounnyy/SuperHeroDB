@@ -23,9 +23,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import felix.duan.superherodb.repo.SuperHeroRepo
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import felix.duan.superherodb.ui.widget.DebugPage
+import felix.duan.superherodb.ui.widget.HeroProfilePage
 import felix.duan.superherodb.ui.widget.HomePage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +69,12 @@ fun SuperHeroDBApp() {
         Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
             when (currentDestination) {
                 AppDestinations.HOME -> HomePage(modifier = Modifier.padding(innerPadding))
+                // TODO: (duanyufei@2025-12-09) demoing
+                AppDestinations.PROFILE -> HeroProfilePage(
+                    id = "99",
+                    modifier = Modifier.padding(innerPadding)
+                )
+
                 AppDestinations.DEBUG -> DebugPage(modifier = Modifier.padding(innerPadding))
                 else -> Greeting(
                     "Android",

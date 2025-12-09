@@ -2,6 +2,7 @@ package felix.duan.superherodb.ui.widget
 
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,10 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,13 +83,203 @@ fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier.Companion) {
             ) {
                 Text(
                     text = hero.name,
-                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Text(
                     text = hero.powerStats.format(),
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
+        }
+    }
+}
+
+
+@Composable
+fun HeroProfilePage(id: String, modifier: Modifier = Modifier.Companion) {
+
+    var hero by remember { mutableStateOf<SuperHeroData?>(null) }
+    var isLoading by remember { mutableStateOf<Boolean>(true) }
+    var isError by remember { mutableStateOf<Boolean>(false) }
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.Main).launch {
+            SuperHeroRepo.get(id)?.let {
+                hero = it
+                isError = false
+            } ?: run {
+                isError = true
+            }
+            isLoading = false
+        }
+    }
+    if (isLoading) {
+        // Centered loading text
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Companion.Center)
+        ) {
+            Text(
+                text = "Loading... #$id",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    } else if (isError) {
+        // Centered error text
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Companion.Center)
+        ) {
+            Text(
+                text = "No hero found #$id",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+    } else {
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            // Hero image and basic info row
+            Row(
+                modifier = Modifier.Companion.fillMaxWidth(),
+                verticalAlignment = Alignment.Companion.CenterVertically
+            ) {
+
+                hero?.let { hero ->
+                    Column {
+                        Row {
+                            AsyncImage(
+                                ImageRequest.Builder(LocalContext.current)
+                                    .data(hero.image.url)
+                                    // TODO: 2025/12/9 (duanyufei) replace with proper images
+                                    .placeholder(R.mipmap.ic_launcher)
+                                    .error(R.mipmap.ic_launcher)
+                                    .fallback(R.mipmap.ic_launcher)
+                                    .build(),
+                                // TODO: 2025/12/9 (duanyufei) ERROR 403
+                                // model = hero.image.url,
+                                contentDescription = hero.name,
+                                modifier = Modifier.Companion
+                                    .size(120.dp)
+                                    .padding(end = 16.dp),
+                                onState = {
+                                    if (it is AsyncImagePainter.State.Error) {
+                                        Log.d("felixx", "image error: $it")
+                                    }
+                                }
+                            )
+
+                            Column {
+                                Text(
+                                    text = hero.name,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    modifier = Modifier.Companion.padding(top = 16.dp)
+                                )
+                                Text(
+                                    text = hero.powerStats.format(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.Companion.padding(top = 4.dp)
+                                )
+                            }
+                        }
+
+                        // Biography section
+                        SectionTitle("Biography")
+                        BiographySection(hero.biography)
+
+                        // Appearance section
+                        SectionTitle("Appearance")
+                        AppearanceSection(hero.appearance)
+
+                        // Work section
+                        SectionTitle("Work")
+                        WorkSection(hero.work)
+
+                        // Connections section
+                        SectionTitle("Connections")
+                        ConnectionsSection(hero.connections)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.Companion
+            .padding(top = 24.dp, bottom = 8.dp)
+    )
+}
+
+@Composable
+private fun BiographySection(biography: SuperHeroData.Biography) {
+    Column {
+        InfoItem("Full Name", biography.fullName)
+        InfoItem("Alter Egos", biography.alterEgos)
+        InfoItem("Aliases", biography.aliases.joinToString(", "))
+        InfoItem("Place of Birth", biography.placeOfBirth)
+        InfoItem("First Appearance", biography.firstAppearance)
+        InfoItem("Publisher", biography.publisher)
+        InfoItem("Alignment", biography.alignment)
+    }
+}
+
+@Composable
+private fun AppearanceSection(appearance: SuperHeroData.Appearance) {
+    Column {
+        InfoItem("Gender", appearance.gender)
+        InfoItem("Race", appearance.race)
+        InfoItem("Height", appearance.height.joinToString(", "))
+        InfoItem("Weight", appearance.weight.joinToString(", "))
+        InfoItem("Eye Color", appearance.eyeColor)
+        InfoItem("Hair Color", appearance.hairColor)
+    }
+}
+
+@Composable
+private fun WorkSection(work: SuperHeroData.Work) {
+    Column {
+        InfoItem("Occupation", work.occupation)
+        InfoItem("Base", work.base)
+    }
+}
+
+@Composable
+private fun ConnectionsSection(connections: SuperHeroData.Connections) {
+    Column {
+        InfoItem("Group Affiliation", connections.groupAffiliation)
+        InfoItem("Relatives", connections.relatives)
+    }
+}
+
+@Composable
+private fun InfoItem(label: String, value: String) {
+    if (value.isNotBlank()) {
+        Row(
+            modifier = Modifier.Companion
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+        ) {
+            Text(
+                text = "$label: ",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.Companion.padding(start = 4.dp)
+            )
         }
     }
 }
