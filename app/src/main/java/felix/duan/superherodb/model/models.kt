@@ -1,5 +1,8 @@
 package felix.duan.superherodb.model
 
+import androidx.room.Embedded
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.Gson
 import com.google.gson.JsonElement
 import com.google.gson.TypeAdapter
@@ -14,15 +17,23 @@ import java.lang.reflect.ParameterizedType
  * @See [https://superheroapi.com]
  */
 
+@Entity(tableName = "superheroes")
 data class SuperHeroData(
+    @PrimaryKey
     val id: String,
     val name: String,
+    @Embedded(prefix = "powerstats_")
     @SerializedName("powerstats")
     val powerStats: PowerStats,
+    @Embedded(prefix = "biography_")
     val biography: Biography,
+    @Embedded(prefix = "appearance_")
     val appearance: Appearance,
+    @Embedded(prefix = "work_")
     val work: Work,
+    @Embedded(prefix = "connections_")
     val connections: Connections,
+    @Embedded(prefix = "image_")
     val image: Image,
 ) {
     data class PowerStats(

@@ -1,5 +1,7 @@
 package felix.duan.superherodb.repo
 
+import android.content.Context
+import androidx.room.Room
 import felix.duan.superherodb.api.ApiService
 import felix.duan.superherodb.model.SuperHeroData
 
@@ -29,19 +31,40 @@ object SuperHeroRepo : Repository {
 
         // TODO: 2025/12/9 (duanyufei) incremental append search result order by id
         val result = ApiService.searchByName(name).getOrElse { return emptyList() }
-        return result.results.toList().also { list ->
-            list.forEach { LocalRepo.saveUser(it) }
+        return result.results.toList().also {
+            LocalRepo.saveAllUsers(it)
         }
     }
 }
 
-// TODO: 2025/12/9 (duanyufei) impl
 object LocalRepo : Repository {
-    override suspend fun get(id: String): SuperHeroData? = null
+    private lateinit var database: SuperHeroDatabase
 
-    override suspend fun search(name: String): List<SuperHeroData> = emptyList()
+    fun init(context: Context) {
+        database = Room.databaseBuilder(
+            context.applicationContext,
+            SuperHeroDatabase::class.java,
+            "superhero-db"
+        ).build()
+    }
 
-    fun saveUser(data: SuperHeroData) {
-//        TODO("Not yet implemented")
+    override suspend fun get(id: String): SuperHeroData? {
+        return database.superHeroDao().getById(id)
+    }
+
+    override suspend fun search(name: String): List<SuperHeroData> {
+        return database.superHeroDao().searchByName(name)
+    }
+
+    suspend fun saveUser(data: SuperHeroData) {
+        database.superHeroDao().insert(data)
+    }
+
+    suspend fun saveAllUsers(users: List<SuperHeroData>) {
+        database.superHeroDao().insertAll(users)
+    }
+
+    suspend fun clearAll() {
+        database.superHeroDao().deleteAll()
     }
 }
