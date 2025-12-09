@@ -380,7 +380,11 @@ fun SearchPage(modifier: Modifier = Modifier.Companion) {
 }
 
 @Composable
-fun HomePage(modifier: Modifier = Modifier.Companion) {
+fun HomePage(
+    onBrowseClick: () -> Unit,
+    onSearchClick: () -> Unit,
+    modifier: Modifier = Modifier.Companion,
+) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -388,15 +392,13 @@ fun HomePage(modifier: Modifier = Modifier.Companion) {
     ) {
         Text("Super Hero DB")
         Button(
-            onClick = {
-                // TODO: 2025/12/10 (duanyufei) navigate to HeroListPage
-            }) {
+            onClick = onBrowseClick
+        ) {
             Text("Browse")
         }
         Button(
-            onClick = {
-                // TODO: 2025/12/10 (duanyufei) navigate to SearchPage
-            }) {
+            onClick = onSearchClick
+        ) {
             Text("Search")
         }
     }
