@@ -18,3 +18,4 @@ app.call.log
 app.log
 /log
 settings.json
+/.kotlin
