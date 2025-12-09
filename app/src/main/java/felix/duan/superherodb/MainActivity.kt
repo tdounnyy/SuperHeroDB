@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import felix.duan.superherodb.model.SuperHeroData
 import felix.duan.superherodb.repo.SuperHeroRepo
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import kotlinx.coroutines.CoroutineScope
@@ -111,6 +112,21 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = hero.name,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
 fun HomePage(modifier: Modifier = Modifier) {
     var superHeroes by remember { mutableStateOf<List<felix.duan.superherodb.model.SuperHeroData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -141,6 +157,7 @@ fun HomePage(modifier: Modifier = Modifier) {
                     modifier = Modifier.padding(16.dp)
                 )
             }
+
             error != null -> {
                 Text(
                     text = "Error: $error",
@@ -148,6 +165,7 @@ fun HomePage(modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center
                 )
             }
+
             superHeroes.isEmpty() -> {
                 Text(
                     text = "No superheroes found. Try searching for some!",
@@ -155,6 +173,7 @@ fun HomePage(modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center
                 )
             }
+
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -162,17 +181,7 @@ fun HomePage(modifier: Modifier = Modifier) {
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
                 ) {
                     items(superHeroes) { hero ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = hero.name,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        HeroListCard(hero = hero)
                     }
                 }
             }
