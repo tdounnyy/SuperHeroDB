@@ -45,11 +45,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier.Companion) {
+fun HeroListCard(hero: SuperHeroData, onClick: () -> Unit, modifier: Modifier = Modifier.Companion) {
     Card(
-        onClick = {
-            // TODO: 2025/12/10 (duanyufei) launch HeroProfilePage
-        },
+        onClick = onClick,
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
@@ -284,7 +282,7 @@ private fun InfoItem(label: String, value: String) {
 }
 
 @Composable
-fun HeroListPage(modifier: Modifier = Modifier.Companion) {
+fun HeroListPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
     var superHeroes by remember { mutableStateOf<List<SuperHeroData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -359,7 +357,7 @@ fun HeroListPage(modifier: Modifier = Modifier.Companion) {
                     contentPadding = PaddingValues(16.dp)
                 ) {
                     items(superHeroes) { hero ->
-                        HeroListCard(hero = hero)
+                        HeroListCard(hero = hero, onClick = { onItemClick(hero.id) })
                     }
                 }
             }

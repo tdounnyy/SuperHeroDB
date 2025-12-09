@@ -44,7 +44,9 @@ fun SuperHeroDBApp() {
             )
         }
         composable("hero_list") {
-            HeroListPage()
+            HeroListPage(
+                onItemClick = { navController.navigate("profile/$it") },
+            )
         }
         composable("search") {
             SearchPage()
