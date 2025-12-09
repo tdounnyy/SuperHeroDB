@@ -47,6 +47,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier.Companion) {
     Card(
+        onClick = {
+            // TODO: 2025/12/10 (duanyufei) launch HeroProfilePage
+        },
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
@@ -281,7 +284,7 @@ private fun InfoItem(label: String, value: String) {
 }
 
 @Composable
-fun HomePage(modifier: Modifier = Modifier.Companion) {
+fun HeroListPage(modifier: Modifier = Modifier.Companion) {
     var superHeroes by remember { mutableStateOf<List<SuperHeroData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -302,35 +305,54 @@ fun HomePage(modifier: Modifier = Modifier.Companion) {
         }
     }
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.Companion.CenterHorizontally
-    ) {
-        when {
-            isLoading -> {
+    when {
+        isLoading -> {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
                 Text(
                     text = "Loading...",
                     modifier = Modifier.Companion.padding(16.dp)
                 )
             }
+        }
 
-            error != null -> {
+        error != null -> {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
                 Text(
                     text = "Error: $error",
                     modifier = Modifier.Companion.padding(16.dp),
                     textAlign = TextAlign.Companion.Center
                 )
             }
+        }
 
-            superHeroes.isEmpty() -> {
+        superHeroes.isEmpty() -> {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
                 Text(
                     text = "No superheroes found. Try searching for some!",
                     modifier = Modifier.Companion.padding(16.dp),
                     textAlign = TextAlign.Companion.Center
                 )
             }
+        }
 
-            else -> {
+
+        else -> {
+            Column(
+                modifier = modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.Companion.CenterHorizontally
+            ) {
                 LazyColumn(
                     modifier = Modifier.Companion.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -341,6 +363,41 @@ fun HomePage(modifier: Modifier = Modifier.Companion) {
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun SearchPage(modifier: Modifier = Modifier.Companion) {
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .wrapContentSize(Alignment.Companion.Center)
+    ) {
+        Text("TODO")
+    }
+}
+
+@Composable
+fun HomePage(modifier: Modifier = Modifier.Companion) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.Companion.CenterHorizontally
+    ) {
+        Text("Super Hero DB")
+        Button(
+            onClick = {
+                // TODO: 2025/12/10 (duanyufei) navigate to HeroListPage
+            }) {
+            Text("Browse")
+        }
+        Button(
+            onClick = {
+                // TODO: 2025/12/10 (duanyufei) navigate to SearchPage
+            }) {
+            Text("Search")
         }
     }
 }
