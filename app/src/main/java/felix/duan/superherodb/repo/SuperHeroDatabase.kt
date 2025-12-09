@@ -19,7 +19,7 @@ interface SuperHeroDao {
     suspend fun getById(id: String): SuperHeroData?
 
     @Query("SELECT * FROM superheroes ORDER BY id")
-    suspend fun getAllLocally(): List<SuperHeroData>
+    suspend fun getAll(): List<SuperHeroData>
 
     @Query("SELECT * FROM superheroes WHERE name LIKE '%' || :name || '%'")
     suspend fun searchByName(name: String): List<SuperHeroData>

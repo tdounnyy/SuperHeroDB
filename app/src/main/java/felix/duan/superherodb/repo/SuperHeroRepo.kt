@@ -6,14 +6,13 @@ import felix.duan.superherodb.api.ApiService
 import felix.duan.superherodb.model.SuperHeroData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.collections.emptyList
 
 interface Repository {
     suspend fun get(id: String): SuperHeroData?
 
-    suspend fun getAllLocally(): List<SuperHeroData>
+    suspend fun getAll(): List<SuperHeroData>
 
-    suspend fun search(name: String): List<SuperHeroData>
+    suspend fun searchLocal(name: String): List<SuperHeroData>
 }
 
 object SuperHeroRepo : Repository {
@@ -24,30 +23,28 @@ object SuperHeroRepo : Repository {
             }
             val result = ApiService.getById(id).getOrElse { return@withContext null }
             return@withContext result.also {
-                LocalRepo.saveUser(result)
+                LocalRepo.save(result)
             }
         }
     }
 
-    override suspend fun getAllLocally(): List<SuperHeroData> {
+    override suspend fun getAll(): List<SuperHeroData> {
         return withContext(Dispatchers.IO) {
-            LocalRepo.getAllLocally()
+            val local = LocalRepo.getAll()
+            if (local.isNotEmpty()) {
+                return@withContext local
+            }
+
+            val remote = ApiService.getAll()
+            return@withContext remote.getOrElse { emptyList() }.also {
+                LocalRepo.saveAll(it)
+            }
         }
     }
 
-    override suspend fun search(name: String): List<SuperHeroData> {
+    override suspend fun searchLocal(name: String): List<SuperHeroData> {
         return withContext(Dispatchers.IO) {
-            LocalRepo.search(name).let {
-                if (it.isNotEmpty()) {
-                    return@withContext it
-                }
-            }
-
-            // TODO: 2025/12/9 (duanyufei) incremental append search result order by id
-            val result = ApiService.searchByName(name).getOrElse { return@withContext emptyList() }
-            return@withContext result.results.toList().also {
-                LocalRepo.saveAllUsers(it)
-            }
+            return@withContext LocalRepo.searchLocal(name)
         }
     }
 }
@@ -67,20 +64,20 @@ object LocalRepo : Repository {
         return database.superHeroDao().getById(id)
     }
 
-    override suspend fun getAllLocally(): List<SuperHeroData> {
-        return database.superHeroDao().getAllLocally()
+    override suspend fun getAll(): List<SuperHeroData> {
+        return database.superHeroDao().getAll()
     }
 
-    override suspend fun search(name: String): List<SuperHeroData> {
+    override suspend fun searchLocal(name: String): List<SuperHeroData> {
         return database.superHeroDao().searchByName(name)
     }
 
-    suspend fun saveUser(data: SuperHeroData) {
+    suspend fun save(data: SuperHeroData) {
         database.superHeroDao().insert(data)
     }
 
-    suspend fun saveAllUsers(users: List<SuperHeroData>) {
-        database.superHeroDao().insertAll(users)
+    suspend fun saveAll(list: List<SuperHeroData>) {
+        database.superHeroDao().insertAll(list)
     }
 
     suspend fun clearAll() {

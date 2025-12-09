@@ -23,13 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import felix.duan.superherodb.repo.SuperHeroRepo
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import felix.duan.superherodb.ui.widget.DebugPage
 import felix.duan.superherodb.ui.widget.HeroProfilePage
 import felix.duan.superherodb.ui.widget.HomePage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -1,9 +1,5 @@
 package felix.duan.superherodb.api
 
-import android.util.Log
-import com.google.gson.GsonBuilder
-import felix.duan.superherodb.model.ApiResponseTypeAdapterFactory
-import felix.duan.superherodb.model.SearchResultData
 import felix.duan.superherodb.model.SuperHeroData
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -13,32 +9,26 @@ import java.util.concurrent.TimeUnit
 
 object ApiService {
 
-    private const val TAG: String = "SuperHeroEndpoint"
-
-    private const val BASE_URL = "https://superheroapi.com/"
+    private const val BASE_URL = "https://cdn.jsdelivr.net/gh/akabab/superhero-api@0.3.0/api/"
 
     private val api: SuperHeroApi by lazy { buildAPI() }
 
-    suspend fun getById(id: String): Result<SuperHeroData> {
-        // TODO: 2025/12/9 (duanyufei) id validation
-        val resp = api.getById(id = id)
-        if (resp.errorMsg != null && resp.errorMsg.isNotEmpty()) {
-            val msg = "API Error: getById ${resp.errorMsg}"
-            Log.e(TAG, msg)
-            return Result.failure(Exception(msg))
+    suspend fun getAll(): Result<List<SuperHeroData>> {
+        return runCatching {
+            val resp = api.getAll()
+            return Result.success(resp)
+        }.onFailure { e ->
+            return Result.failure(e)
         }
-        return Result.success(resp.data as SuperHeroData)
     }
 
-    suspend fun searchByName(name: String): Result<SearchResultData> {
-        // TODO: 2025/12/9 (duanyufei) name validation
-        val resp = api.searchByName(name = name)
-        if (resp.errorMsg != null && resp.errorMsg.isNotEmpty()) {
-            val msg = "API Error: searchByName ${resp.errorMsg}"
-            Log.e(TAG, msg)
-            return Result.failure(Exception(msg))
+    suspend fun getById(id: String): Result<SuperHeroData> {
+        return runCatching {
+            val resp = api.getById(id)
+            return Result.success(resp)
+        }.onFailure { e ->
+            return Result.failure(e)
         }
-        return Result.success(resp.data as SearchResultData)
     }
 
     private fun buildAPI(): SuperHeroApi {
@@ -51,14 +41,10 @@ object ApiService {
                 level = HttpLoggingInterceptor.Level.BODY
             }).build()
 
-        val gson = GsonBuilder()
-            .registerTypeAdapterFactory(ApiResponseTypeAdapterFactory())
-            .create()
-
         val retrofit = Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
 
         return retrofit.create(SuperHeroApi::class.java)

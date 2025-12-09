@@ -57,14 +57,12 @@ fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier.Companion) {
         ) {
             AsyncImage(
                 ImageRequest.Builder(LocalContext.current)
-                    .data(hero.image.url)
+                    .data(hero.images.sm)
                     // TODO: 2025/12/9 (duanyufei) replace with proper images
                     .placeholder(R.mipmap.ic_launcher)
                     .error(R.mipmap.ic_launcher)
                     .fallback(R.mipmap.ic_launcher)
                     .build(),
-                // TODO: 2025/12/9 (duanyufei) ERROR 403
-                // model = hero.image.url,
                 contentDescription = hero.name,
                 modifier = Modifier.Companion
                     .size(64.dp),
@@ -156,14 +154,12 @@ fun HeroProfilePage(id: String, modifier: Modifier = Modifier.Companion) {
                         Row {
                             AsyncImage(
                                 ImageRequest.Builder(LocalContext.current)
-                                    .data(hero.image.url)
+                                    .data(hero.images.sm)
                                     // TODO: 2025/12/9 (duanyufei) replace with proper images
                                     .placeholder(R.mipmap.ic_launcher)
                                     .error(R.mipmap.ic_launcher)
                                     .fallback(R.mipmap.ic_launcher)
                                     .build(),
-                                // TODO: 2025/12/9 (duanyufei) ERROR 403
-                                // model = hero.image.url,
                                 contentDescription = hero.name,
                                 modifier = Modifier.Companion
                                     .size(120.dp)
@@ -229,7 +225,7 @@ private fun BiographySection(biography: SuperHeroData.Biography) {
         InfoItem("Aliases", biography.aliases.joinToString(", "))
         InfoItem("Place of Birth", biography.placeOfBirth)
         InfoItem("First Appearance", biography.firstAppearance)
-        InfoItem("Publisher", biography.publisher)
+        InfoItem("Publisher", biography.publisher ?: "unknown")
         InfoItem("Alignment", biography.alignment)
     }
 }
@@ -238,7 +234,7 @@ private fun BiographySection(biography: SuperHeroData.Biography) {
 private fun AppearanceSection(appearance: SuperHeroData.Appearance) {
     Column {
         InfoItem("Gender", appearance.gender)
-        InfoItem("Race", appearance.race)
+        InfoItem("Race", appearance.race ?: "unknown")
         InfoItem("Height", appearance.height.joinToString(", "))
         InfoItem("Weight", appearance.weight.joinToString(", "))
         InfoItem("Eye Color", appearance.eyeColor)
@@ -292,11 +288,13 @@ fun HomePage(modifier: Modifier = Modifier.Companion) {
 
     LaunchedEffect(Unit) {
         try {
-            isLoading = true
-            error = null
-            val heroes = SuperHeroRepo.getAllLocally()
-            superHeroes = heroes
-            isLoading = false
+            CoroutineScope(Dispatchers.Main).launch {
+                isLoading = true
+                error = null
+                val heroes = SuperHeroRepo.getAll()
+                superHeroes = heroes
+                isLoading = false
+            }
         } catch (e: Exception) {
             error = e.message
             isLoading = false
@@ -368,19 +366,19 @@ fun DebugPage(modifier: Modifier = Modifier.Companion) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    SuperHeroRepo.getAllLocally().let { list ->
+                    SuperHeroRepo.getAll().let { list ->
                         list.forEach {
-                            Log.d("felixx", "getAllLocally: $it")
+                            Log.d("felixx", "getAll: $it")
                         }
                     }
                 }
             }) {
-            Text("getAllLocally")
+            Text("getAll")
         }
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    SuperHeroRepo.search("batman").let {
+                    SuperHeroRepo.searchLocal("batman").let {
                         Log.d("felixx", "searchByName: $it")
                     }
                 }
