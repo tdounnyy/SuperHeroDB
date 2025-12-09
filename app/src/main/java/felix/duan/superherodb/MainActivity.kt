@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import felix.duan.superherodb.api.ApiService
+import felix.duan.superherodb.api.ApiService.getById
+import felix.duan.superherodb.repo.SuperHeroRepo
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -120,7 +122,7 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    ApiService.getById("30").let {
+                    SuperHeroRepo.get("30").let {
                         Log.d("felixx", "getById: $it")
                     }
                 }
@@ -130,7 +132,7 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    ApiService.searchByName("batman").let {
+                    SuperHeroRepo.search("batman").let {
                         Log.d("felixx", "searchByName: $it")
                     }
                 }
