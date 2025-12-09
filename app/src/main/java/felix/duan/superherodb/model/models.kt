@@ -1,16 +1,23 @@
 package felix.duan.superherodb.model
 
+import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.TypeAdapter
+import com.google.gson.TypeAdapterFactory
 import com.google.gson.annotations.SerializedName
+import com.google.gson.reflect.TypeToken
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
+import java.lang.reflect.ParameterizedType
 
 /**
  * @See [https://superheroapi.com]
  */
 
 data class SuperHeroData(
-    val response: String,
-    val error: String?,
     val id: String,
     val name: String,
+    @SerializedName("powerstats")
     val powerStats: PowerStats,
     val biography: Biography,
     val appearance: Appearance,
@@ -69,8 +76,6 @@ data class SuperHeroData(
 }
 
 data class SearchResultData(
-    val response: String,
-    val error: String?,
     val resultsFor: String,
     val results: Array<SuperHeroData>,
 ) {
@@ -93,10 +98,45 @@ data class SearchResultData(
     }
 }
 
-// TODO: 2025/12/9 (duanyufei) impl custom Parser
-// SuperHeroData & SearchResultData
-data class SuperHeroResponse<T>(
-    val response: String,
-    val error: String?,
-    val data: T,
+data class ApiResponse<T>(
+    val success: Boolean,
+    val errorMsg: String?,
+    val data: T?,
 )
+
+class ApiResponseTypeAdapterFactory : TypeAdapterFactory {
+
+    override fun <T> create(gson: Gson, type: TypeToken<T>): TypeAdapter<T>? {
+
+        if (!ApiResponse::class.java.isAssignableFrom(type.rawType)) {
+            return null
+        }
+
+        val delegateAdapter = gson.getDelegateAdapter(this, type)
+        val jsonElementAdapter = gson.getAdapter(JsonElement::class.java)
+
+        return object : TypeAdapter<T>() {
+            override fun write(out: JsonWriter, value: T) {
+                delegateAdapter.write(out, value)
+            }
+
+            override fun read(input: JsonReader): T {
+                val jsonElement = jsonElementAdapter.read(input)
+
+                val jsonObject = jsonElement.asJsonObject
+                val response = jsonObject.get("response")?.asString.orEmpty() // status
+                val error = jsonObject.get("error")?.asString.orEmpty() // error msg
+
+                return if (response == "success") {
+                    // 拿到泛型 T 的实际类型（例如 ApiResponse<User> 中的 User）
+                    val actualType = (type.type as ParameterizedType).actualTypeArguments[0]
+                    val data = gson.fromJson<Any>(jsonObject, actualType)
+
+                    ApiResponse(true, null, data) as T
+                } else {
+                    ApiResponse<Any>(false, error, null) as T
+                }
+            }
+        } as TypeAdapter<T>
+    }
+}

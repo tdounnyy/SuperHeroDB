@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import felix.duan.superherodb.api.SuperHeroEndpoint
+import felix.duan.superherodb.api.ApiService
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -120,7 +120,7 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    SuperHeroEndpoint.getById("30").let {
+                    ApiService.getById("30").let {
                         Log.d("felixx", "getById: $it")
                     }
                 }
@@ -130,7 +130,7 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    SuperHeroEndpoint.searchByName("batman").let {
+                    ApiService.searchByName("batman").let {
                         Log.d("felixx", "searchByName: $it")
                     }
                 }
