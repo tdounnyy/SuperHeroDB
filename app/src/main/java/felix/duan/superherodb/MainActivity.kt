@@ -10,7 +10,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
-import felix.duan.superherodb.ui.widget.DebugPage
 import felix.duan.superherodb.ui.widget.HeroListPage
 import felix.duan.superherodb.ui.widget.HeroProfilePage
 import felix.duan.superherodb.ui.widget.HomePage
@@ -33,7 +32,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SuperHeroDBApp() {
     val navController = rememberNavController()
-    
+
     NavHost(
         navController = navController,
         startDestination = "home"
@@ -49,9 +48,6 @@ fun SuperHeroDBApp() {
         }
         composable("search") {
             SearchPage()
-        }
-        composable("debug") {
-            DebugPage()
         }
         composable("profile/{id}") { backStackEntry ->
             val heroId = backStackEntry.arguments?.getString("id") ?: ""
