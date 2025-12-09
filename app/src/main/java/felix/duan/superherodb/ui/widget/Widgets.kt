@@ -19,14 +19,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -282,7 +285,7 @@ private fun InfoItem(label: String, value: String) {
 }
 
 @Composable
-fun HeroListPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
+fun HeroListPage(keyword: String? = null, onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
     var superHeroes by remember { mutableStateOf<List<SuperHeroData>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -292,7 +295,11 @@ fun HeroListPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifie
             CoroutineScope(Dispatchers.Main).launch {
                 isLoading = true
                 error = null
-                val heroes = SuperHeroRepo.getAll()
+                val heroes = if (keyword.isNullOrEmpty()) {
+                    SuperHeroRepo.getAll()
+                } else {
+                    SuperHeroRepo.searchLocal(keyword)
+                }
                 superHeroes = heroes
                 isLoading = false
             }
@@ -366,14 +373,82 @@ fun HeroListPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifie
 }
 
 @Composable
-fun SearchPage(modifier: Modifier = Modifier.Companion) {
+fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<SuperHeroData>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(false) }
 
-    Box(
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotEmpty()) {
+            isLoading = true
+            val results = SuperHeroRepo.searchLocal(searchQuery)
+            searchResults = results
+            isLoading = false
+        }
+    }
+
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.Companion.Center)
     ) {
-        Text("TODO")
+        TextField(
+            value = searchQuery,
+            onValueChange = {
+                searchQuery = it
+                isLoading = true
+                // TODO: 2025/12/10 (duanyufei) debounce
+                CoroutineScope(Dispatchers.Main).launch {
+                    val results = SuperHeroRepo.searchLocal(searchQuery)
+                    searchResults = results
+                    isLoading = false
+                }
+            },
+            label = { Text("Input to search") },
+            placeholder = { Text("Search superheroes...") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp, start = 16.dp, end = 16.dp)
+        )
+
+        // HeroListPage based on search results
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
+                Text("Searching...")
+            }
+        } else if (searchResults.isEmpty() && searchQuery.isNotEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
+                Text("No heroes found for \"$searchQuery\"")
+            }
+        } else if (searchResults.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Companion.Center)
+            ) {
+                Text("Search for superheroes by name")
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(16.dp)
+            ) {
+                items(searchResults) { hero ->
+                    HeroListCard(
+                        hero = hero,
+                        onClick = { onItemClick(hero.id) }
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -384,18 +459,22 @@ fun HomePage(
     modifier: Modifier = Modifier.Companion,
 ) {
     Column(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Companion.CenterHorizontally
     ) {
         Text("Super Hero DB")
         Button(
-            onClick = onBrowseClick
+            onClick = onBrowseClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Browse")
         }
         Button(
-            onClick = onSearchClick
+            onClick = onSearchClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Search")
         }

@@ -49,7 +49,7 @@ fun SuperHeroDBApp() {
             )
         }
         composable("search") {
-            SearchPage()
+            SearchPage(onItemClick = { navController.navigate("profile/$it") })
         }
         composable("profile/{id}") { backStackEntry ->
             val heroId = backStackEntry.arguments?.getString("id") ?: ""
