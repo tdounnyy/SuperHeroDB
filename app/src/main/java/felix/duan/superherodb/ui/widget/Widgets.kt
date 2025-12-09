@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -20,8 +22,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.error
+import coil3.request.fallback
+import coil3.request.placeholder
+import felix.duan.superherodb.R
+import felix.duan.superherodb.format
 import felix.duan.superherodb.model.SuperHeroData
 import felix.duan.superherodb.repo.SuperHeroRepo
 import kotlinx.coroutines.CoroutineScope
@@ -33,13 +44,48 @@ fun HeroListCard(hero: SuperHeroData, modifier: Modifier = Modifier.Companion) {
     Card(
         modifier = modifier.fillMaxWidth()
     ) {
-        Text(
-            text = hero.name,
+        Row(
             modifier = Modifier.Companion
                 .fillMaxWidth()
-                .padding(16.dp),
-            textAlign = TextAlign.Companion.Center
-        )
+                .padding(8.dp),
+            verticalAlignment = Alignment.Companion.CenterVertically
+        ) {
+            AsyncImage(
+                ImageRequest.Builder(LocalContext.current)
+                    .data(hero.image.url)
+                    // TODO: 2025/12/9 (duanyufei) replace with proper images
+                    .placeholder(R.mipmap.ic_launcher)
+                    .error(R.mipmap.ic_launcher)
+                    .fallback(R.mipmap.ic_launcher)
+                    .build(),
+                // TODO: 2025/12/9 (duanyufei) ERROR 403
+                // model = hero.image.url,
+                contentDescription = hero.name,
+                modifier = Modifier.Companion
+                    .size(64.dp),
+                onState = {
+                    if (it is AsyncImagePainter.State.Error) {
+                        Log.d("felixx", "image error: $it")
+                    }
+                }
+            )
+
+            // Column on the end with name and details
+            Column(
+                modifier = Modifier.Companion
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            ) {
+                Text(
+                    text = hero.name,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = hero.powerStats.format(),
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+                )
+            }
+        }
     }
 }
 
