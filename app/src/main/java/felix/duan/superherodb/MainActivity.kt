@@ -131,6 +131,18 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
+                    SuperHeroRepo.getAllLocally().let { list ->
+                        list.forEach {
+                            Log.d("felixx", "getAllLocally: $it")
+                        }
+                    }
+                }
+            }) {
+            Text("getAllLocally")
+        }
+        Button(
+            onClick = {
+                CoroutineScope(Dispatchers.IO).launch {
                     SuperHeroRepo.search("batman").let {
                         Log.d("felixx", "searchByName: $it")
                     }

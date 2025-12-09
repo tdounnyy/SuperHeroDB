@@ -8,6 +8,8 @@ import felix.duan.superherodb.model.SuperHeroData
 interface Repository {
     suspend fun get(id: String): SuperHeroData?
 
+    suspend fun getAllLocally(): List<SuperHeroData>
+
     suspend fun search(name: String): List<SuperHeroData>
 }
 
@@ -20,6 +22,10 @@ object SuperHeroRepo : Repository {
         return result.also {
             LocalRepo.saveUser(result)
         }
+    }
+
+    override suspend fun getAllLocally(): List<SuperHeroData> {
+        return LocalRepo.getAllLocally()
     }
 
     override suspend fun search(name: String): List<SuperHeroData> {
@@ -50,6 +56,10 @@ object LocalRepo : Repository {
 
     override suspend fun get(id: String): SuperHeroData? {
         return database.superHeroDao().getById(id)
+    }
+
+    override suspend fun getAllLocally(): List<SuperHeroData> {
+        return database.superHeroDao().getAllLocally()
     }
 
     override suspend fun search(name: String): List<SuperHeroData> {
