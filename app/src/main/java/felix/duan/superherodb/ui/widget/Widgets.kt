@@ -6,16 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -155,7 +154,7 @@ fun HeroProfilePage(id: String, modifier: Modifier = Modifier.Companion) {
             ) {
 
                 hero?.let { hero ->
-                    Column {
+                    Column(modifier = Modifier.padding(top = 40.dp)) {
                         Row {
                             AsyncImage(
                                 ImageRequest.Builder(LocalContext.current)
@@ -356,7 +355,9 @@ fun HeroListPage(keyword: String? = null, onItemClick: (id: String) -> Unit, mod
 
         else -> {
             Column(
-                modifier = modifier.fillMaxSize(),
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(top = 40.dp),
                 horizontalAlignment = Alignment.Companion.CenterHorizontally
             ) {
                 LazyColumn(
@@ -404,8 +405,10 @@ fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.
                     isLoading = false
                 }
             },
-            label = { Text("Input to search") },
-            placeholder = { Text("Search superheroes...") },
+            label = { Text("Search for superheroes") },
+            placeholder = { Text("by name") },
+            shape = RoundedCornerShape(20.dp),
+            singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp, start = 16.dp, end = 16.dp)
