@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import felix.duan.superherodb.repo.LocalRepo
 import felix.duan.superherodb.repo.SuperHeroRepo
 import felix.duan.superherodb.ui.theme.SuperHeroDBTheme
 import kotlinx.coroutines.CoroutineScope
@@ -42,10 +41,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        // TODO: 2025/12/9 (duanyufei) Move to Application bg thread
-        // Initialize LocalRepo with Room database
-        LocalRepo.init(this)
 
         setContent {
             SuperHeroDBTheme {
@@ -126,7 +121,7 @@ fun DebugPage(modifier: Modifier = Modifier) {
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.IO).launch {
-                    SuperHeroRepo.get("30").let {
+                    SuperHeroRepo.get("69").let {
                         Log.d("felixx", "getById: $it")
                     }
                 }
