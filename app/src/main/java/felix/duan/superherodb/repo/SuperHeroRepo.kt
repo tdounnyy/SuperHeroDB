@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import felix.duan.superherodb.api.ApiService
 import felix.duan.superherodb.model.SuperHeroData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlin.collections.emptyList
 
 interface Repository {
     suspend fun get(id: String): SuperHeroData?
@@ -15,30 +18,36 @@ interface Repository {
 
 object SuperHeroRepo : Repository {
     override suspend fun get(id: String): SuperHeroData? {
-        LocalRepo.get(id)?.let {
-            return it
-        }
-        val result = ApiService.getById(id).getOrElse { return null }
-        return result.also {
-            LocalRepo.saveUser(result)
+        return withContext(Dispatchers.IO) {
+            LocalRepo.get(id)?.let {
+                return@withContext it
+            }
+            val result = ApiService.getById(id).getOrElse { return@withContext null }
+            return@withContext result.also {
+                LocalRepo.saveUser(result)
+            }
         }
     }
 
     override suspend fun getAllLocally(): List<SuperHeroData> {
-        return LocalRepo.getAllLocally()
+        return withContext(Dispatchers.IO) {
+            LocalRepo.getAllLocally()
+        }
     }
 
     override suspend fun search(name: String): List<SuperHeroData> {
-        LocalRepo.search(name).let {
-            if (it.isNotEmpty()) {
-                return it
+        return withContext(Dispatchers.IO) {
+            LocalRepo.search(name).let {
+                if (it.isNotEmpty()) {
+                    return@withContext it
+                }
             }
-        }
 
-        // TODO: 2025/12/9 (duanyufei) incremental append search result order by id
-        val result = ApiService.searchByName(name).getOrElse { return emptyList() }
-        return result.results.toList().also {
-            LocalRepo.saveAllUsers(it)
+            // TODO: 2025/12/9 (duanyufei) incremental append search result order by id
+            val result = ApiService.searchByName(name).getOrElse { return@withContext emptyList() }
+            return@withContext result.results.toList().also {
+                LocalRepo.saveAllUsers(it)
+            }
         }
     }
 }
