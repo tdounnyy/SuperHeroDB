@@ -5,6 +5,7 @@ import androidx.room.Room
 import felix.duan.superherodb.api.ApiService
 import felix.duan.superherodb.model.SuperHeroData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 interface Repository {
@@ -13,6 +14,8 @@ interface Repository {
     suspend fun getAll(): List<SuperHeroData>
 
     suspend fun searchLocal(name: String): List<SuperHeroData>
+    
+    suspend fun loadMore(page: Int, pageSize: Int, keyword: String? = null): List<SuperHeroData>
 }
 
 object SuperHeroRepo : Repository {
@@ -45,6 +48,13 @@ object SuperHeroRepo : Repository {
     override suspend fun searchLocal(name: String): List<SuperHeroData> {
         return withContext(Dispatchers.IO) {
             return@withContext LocalRepo.searchLocal(name)
+        }
+    }
+
+    override suspend fun loadMore(page: Int, pageSize: Int, keyword: String?): List<SuperHeroData> {
+        return withContext(Dispatchers.IO) {
+            delay(1000) // mocking weak network
+            return@withContext LocalRepo.loadMore(page, pageSize, keyword)
         }
     }
 }
@@ -82,5 +92,21 @@ object LocalRepo : Repository {
 
     suspend fun clearAll() {
         database.superHeroDao().deleteAll()
+    }
+
+    override suspend fun loadMore(page: Int, pageSize: Int, keyword: String?): List<SuperHeroData> {
+        val allData = if (keyword.isNullOrEmpty()) {
+            database.superHeroDao().getAll()
+        } else {
+            database.superHeroDao().searchByName(keyword)
+        }
+        
+        val start = page * pageSize
+        if (start >= allData.size) {
+            return emptyList()
+        }
+        
+        val end = minOf(start + pageSize, allData.size)
+        return allData.subList(start, end)
     }
 }

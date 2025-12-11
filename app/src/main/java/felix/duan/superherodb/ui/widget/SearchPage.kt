@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -25,18 +26,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import felix.duan.superherodb.viewmodel.HeroListViewModel
+import felix.duan.superherodb.viewmodel.HeroPagingListViewModel
 
 @Composable
 fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    val viewModel: HeroListViewModel = viewModel()
+    val viewModel: HeroPagingListViewModel = viewModel()
     val superHeroes by viewModel.superHeroes.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
+    val hasMore by viewModel.hasMore.collectAsState()
     val error by viewModel.error.collectAsState()
 
     LaunchedEffect(searchQuery) {
         if (searchQuery.isNotEmpty()) {
-            viewModel.loadHeroes(searchQuery)
+            viewModel.refreshHeroes(searchQuery)
+        } else {
+            viewModel.clearData()
         }
     }
 
@@ -49,7 +54,7 @@ fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.
             onValueChange = {
                 searchQuery = it
                 if (it.isNotEmpty()) {
-                    viewModel.loadHeroes(it)
+                    viewModel.refreshHeroes(it)
                 } else {
                     viewModel.clearData()
                 }
@@ -65,16 +70,6 @@ fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.
 
         // 基于搜索结果显示内容
         when {
-            isLoading -> {
-                Box(
-                    modifier = Modifier.Companion
-                        .fillMaxSize()
-                        .wrapContentSize(Alignment.Companion.Center)
-                ) {
-                    Text("Searching...")
-                }
-            }
-
             error != null -> {
                 Box(
                     modifier = Modifier.Companion
@@ -116,6 +111,35 @@ fun SearchPage(onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.
                             hero = hero,
                             onClick = { onItemClick(hero.id) }
                         )
+                    }
+
+                    // show loading indicator
+                    if (isLoadingMore) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    } else if (hasMore && superHeroes.isNotEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // load more trigger
+                                LaunchedEffect(Unit) {
+                                    viewModel.loadMoreHeroes()
+                                }
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }
