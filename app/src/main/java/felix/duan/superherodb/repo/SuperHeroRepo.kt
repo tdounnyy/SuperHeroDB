@@ -95,18 +95,11 @@ object LocalRepo : Repository {
     }
 
     override suspend fun loadMore(page: Int, pageSize: Int, keyword: String?): List<SuperHeroData> {
-        val allData = if (keyword.isNullOrEmpty()) {
-            database.superHeroDao().getAll()
+        val offset = page * pageSize
+        return if (keyword.isNullOrEmpty()) {
+            database.superHeroDao().getAll(limit = pageSize, offset = offset)
         } else {
-            database.superHeroDao().searchByName(keyword)
+            database.superHeroDao().searchByName(keyword, limit = pageSize, offset = offset)
         }
-        
-        val start = page * pageSize
-        if (start >= allData.size) {
-            return emptyList()
-        }
-        
-        val end = minOf(start + pageSize, allData.size)
-        return allData.subList(start, end)
     }
 }

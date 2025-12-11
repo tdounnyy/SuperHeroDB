@@ -21,8 +21,14 @@ interface SuperHeroDao {
     @Query("SELECT * FROM superheroes ORDER BY id")
     suspend fun getAll(): List<SuperHeroData>
 
-    @Query("SELECT * FROM superheroes WHERE name LIKE '%' || :name || '%'")
+    @Query("SELECT * FROM superheroes ORDER BY id LIMIT :limit OFFSET :offset")
+    suspend fun getAll(limit: Int, offset: Int): List<SuperHeroData>
+
+    @Query("SELECT * FROM superheroes WHERE name LIKE '%' || :name || '%' ORDER BY id")
     suspend fun searchByName(name: String): List<SuperHeroData>
+
+    @Query("SELECT * FROM superheroes WHERE name LIKE '%' || :name || '%' ORDER BY id LIMIT :limit OFFSET :offset")
+    suspend fun searchByName(name: String, limit: Int, offset: Int): List<SuperHeroData>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(superHero: SuperHeroData)
