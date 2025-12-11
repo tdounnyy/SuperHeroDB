@@ -1,6 +1,5 @@
 package felix.duan.superherodb.ui.widget
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,44 +12,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import felix.duan.superherodb.model.SuperHeroData
-import felix.duan.superherodb.repo.SuperHeroRepo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import felix.duan.superherodb.viewmodel.HeroListViewModel
 
 @Composable
 fun HeroListPage(keyword: String? = null, onItemClick: (id: String) -> Unit, modifier: Modifier = Modifier.Companion) {
-    var superHeroes by remember { mutableStateOf<List<SuperHeroData>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-    var error by remember { mutableStateOf<String?>(null) }
+    val viewModel: HeroListViewModel = viewModel()
+    val superHeroes by viewModel.superHeroes.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
-    LaunchedEffect(Unit) {
-        try {
-            CoroutineScope(Dispatchers.Main).launch {
-                isLoading = true
-                error = null
-                val heroes = if (keyword.isNullOrEmpty()) {
-                    SuperHeroRepo.getAll()
-                } else {
-                    SuperHeroRepo.searchLocal(keyword)
-                }
-                superHeroes = heroes
-                isLoading = false
-            }
-        } catch (e: Exception) {
-            error = e.message
-            isLoading = false
-            Log.e("felixx", "Error loading superheroes", e)
-        }
+    LaunchedEffect(keyword) {
+        viewModel.loadHeroes(keyword)
     }
 
     when {
